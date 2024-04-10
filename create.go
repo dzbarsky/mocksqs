@@ -1,9 +1,9 @@
 package mocksqs
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 // CreateQueue is partially implemented. The following fields are not
@@ -15,8 +15,7 @@ import (
 // ContentBasedDeduplication
 //
 // - Tags
-//
-func (client *SQS) CreateQueue(input *sqs.CreateQueueInput) (*sqs.CreateQueueOutput, error) {
+func (client *SQS) CreateQueue(ctx context.Context, input *sqs.CreateQueueInput, _ ...func(*sqs.Options)) (*sqs.CreateQueueOutput, error) {
 	client.httpRequest()
 
 	client.Lock()
@@ -36,14 +35,4 @@ func (client *SQS) CreateQueue(input *sqs.CreateQueueInput) (*sqs.CreateQueueOut
 	return &sqs.CreateQueueOutput{
 		QueueUrl: &queueURL,
 	}, nil
-}
-
-// CreateQueueWithContext is not implemented. It will panic in all cases.
-func (client *SQS) CreateQueueWithContext(aws.Context, *sqs.CreateQueueInput, ...request.Option) (*sqs.CreateQueueOutput, error) {
-	panic("CreateQueueWithContext is not implemented")
-}
-
-// CreateQueueRequest is not implemented. It will panic in all cases.
-func (client *SQS) CreateQueueRequest(*sqs.CreateQueueInput) (*request.Request, *sqs.CreateQueueOutput) {
-	panic("CreateQueueRequest is not implemented")
 }

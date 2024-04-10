@@ -1,11 +1,13 @@
 package mocksqs
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"context"
 	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 type SQS struct {
@@ -36,7 +38,7 @@ func NewWithQueues(queues map[string][]string) *SQS {
 		client.queues.Store(queueURL, newQueue(queueURL))
 
 		for _, body := range messages {
-			_, _ = client.SendMessage(&sqs.SendMessageInput{
+			_, _ = client.SendMessage(context.Background(), &sqs.SendMessageInput{
 				QueueUrl:    aws.String(queueURL),
 				MessageBody: aws.String(body),
 			})

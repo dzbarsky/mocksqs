@@ -3,11 +3,12 @@ package mocksqs
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	"github.com/google/uuid"
 )
 
 // SendMessage is partially supported. The following are not supported:
@@ -31,11 +32,6 @@ import (
 // - SendMessageOutput.MessageId
 //
 // - SendMessageOutput.SequenceNumber
-//
-func (client *SQS) SendMessage(input *sqs.SendMessageInput) (*sqs.SendMessageOutput, error) {
-	return client.SendMessageWithContext(context.TODO(), input, nil)
-}
-
 func (client *SQS) sendMessage(input *sqs.SendMessageInput) (*sqs.SendMessageOutput, error) {
 	err := checkRequiredFields(map[string]interface{}{
 		"SendMessageInput.QueueUrl":    input.QueueUrl,
@@ -49,16 +45,16 @@ func (client *SQS) sendMessage(input *sqs.SendMessageInput) (*sqs.SendMessageOut
 		return &sqs.SendMessageOutput{}, errorMissingParameter("MessageBody")
 	}
 
-	if input.DelaySeconds != nil && (*input.DelaySeconds < 0 || *input.DelaySeconds > 900) {
+	if input.DelaySeconds < 0 || input.DelaySeconds > 900 {
 		return &sqs.SendMessageOutput{}, errorInvalidParameterValue(
 			fmt.Sprintf("Value %d for parameter DelaySeconds is invalid. Reason: DelaySeconds must be >= 0 and <= 900.",
-				*input.DelaySeconds))
+				input.DelaySeconds))
 	}
 
 	if queue := client.GetQueue(*input.QueueUrl); queue != nil {
 		receiptHandle := uuid.New().String()
 		queue.messages.Set(receiptHandle, &Message{
-			Message: sqs.Message{
+			Message: types.Message{
 				Body:          input.MessageBody,
 				ReceiptHandle: aws.String(receiptHandle),
 			},
@@ -78,7 +74,7 @@ func (client *SQS) sendMessage(input *sqs.SendMessageInput) (*sqs.SendMessageOut
 // - Recording opts
 //
 // - Also see all features not supported for SendMessage()
-func (client *SQS) SendMessageWithContext(ctx aws.Context, input *sqs.SendMessageInput, opts ...request.Option) (*sqs.SendMessageOutput, error) {
+func (client *SQS) SendMessage(ctx context.Context, input *sqs.SendMessageInput, _ ...func(*sqs.Options)) (*sqs.SendMessageOutput, error) {
 	client.httpRequest()
 
 	client.Lock()
@@ -87,22 +83,7 @@ func (client *SQS) SendMessageWithContext(ctx aws.Context, input *sqs.SendMessag
 	return client.sendMessage(input)
 }
 
-// SendMessageRequest is not implemented. It will panic in all cases.
-func (client *SQS) SendMessageRequest(*sqs.SendMessageInput) (*request.Request, *sqs.SendMessageOutput) {
-	panic("SendMessageRequest is not implemented")
-}
-
 // SendMessageBatch is not implemented. It will panic in all cases.
-func (client *SQS) SendMessageBatch(*sqs.SendMessageBatchInput) (*sqs.SendMessageBatchOutput, error) {
+func (client *SQS) SendMessageBatch(context.Context, *sqs.SendMessageBatchInput, ...func(*sqs.Options)) (*sqs.SendMessageBatchOutput, error) {
 	panic("SendMessageBatch is not implemented")
-}
-
-// SendMessageBatchWithContext is not implemented. It will panic in all cases.
-func (client *SQS) SendMessageBatchWithContext(aws.Context, *sqs.SendMessageBatchInput, ...request.Option) (*sqs.SendMessageBatchOutput, error) {
-	panic("SendMessageBatchWithContext is not implemented")
-}
-
-// SendMessageBatchRequest is not implemented. It will panic in all cases.
-func (client *SQS) SendMessageBatchRequest(*sqs.SendMessageBatchInput) (*request.Request, *sqs.SendMessageBatchOutput) {
-	panic("SendMessageBatchRequest is not implemented")
 }

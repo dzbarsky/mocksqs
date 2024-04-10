@@ -1,11 +1,12 @@
 package mocksqs
 
 import (
+	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/sqs"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
 // ReceiveMessage is partially supported. The following are not supported:
@@ -19,8 +20,7 @@ import (
 // - ReceiveMessageInput.VisibilityTimeout
 //
 // - ReceiveMessageInput.WaitTimeSeconds
-//
-func (client *SQS) ReceiveMessage(input *sqs.ReceiveMessageInput) (*sqs.ReceiveMessageOutput, error) {
+func (client *SQS) ReceiveMessage(ctx context.Context, input *sqs.ReceiveMessageInput, _ ...func(*sqs.Options)) (*sqs.ReceiveMessageOutput, error) {
 	client.httpRequest()
 
 	client.Lock()
@@ -40,24 +40,24 @@ func (client *SQS) ReceiveMessage(input *sqs.ReceiveMessageInput) (*sqs.ReceiveM
 				_, _ = client.changeMessageVisibility(&sqs.ChangeMessageVisibilityInput{
 					QueueUrl:          input.QueueUrl,
 					ReceiptHandle:     message.ReceiptHandle,
-					VisibilityTimeout: aws.Int64(30),
+					VisibilityTimeout: 30,
 				})
 
 				message.ReceiveCount++
 
-				output.Messages = append(output.Messages, &sqs.Message{
+				output.Messages = append(output.Messages, types.Message{
 					Body:          message.Body,
 					ReceiptHandle: message.ReceiptHandle,
-					Attributes: map[string]*string{
-						"ApproximateReceiveCount": aws.String(fmt.Sprintf("%d", message.ReceiveCount)),
+					Attributes: map[string]string{
+						"ApproximateReceiveCount": fmt.Sprintf("%d", message.ReceiveCount),
 					},
 				})
 
-				if input.MaxNumberOfMessages == nil {
-					input.MaxNumberOfMessages = aws.Int64(1)
+				if input.MaxNumberOfMessages == 0 {
+					input.MaxNumberOfMessages = 1
 				}
 
-				if len(output.Messages) == int(*input.MaxNumberOfMessages) {
+				if len(output.Messages) == int(input.MaxNumberOfMessages) {
 					return output, nil
 				}
 			}
@@ -67,14 +67,4 @@ func (client *SQS) ReceiveMessage(input *sqs.ReceiveMessageInput) (*sqs.ReceiveM
 	}
 
 	return nil, errorNonExistentQueue()
-}
-
-// ReceiveMessageWithContext is not implemented. It will panic in all cases.
-func (client *SQS) ReceiveMessageWithContext(aws.Context, *sqs.ReceiveMessageInput, ...request.Option) (*sqs.ReceiveMessageOutput, error) {
-	panic("ReceiveMessageWithContext is not implemented")
-}
-
-// ReceiveMessageRequest is not implemented. It will panic in all cases.
-func (client *SQS) ReceiveMessageRequest(*sqs.ReceiveMessageInput) (*request.Request, *sqs.ReceiveMessageOutput) {
-	panic("ReceiveMessageRequest is not implemented")
 }

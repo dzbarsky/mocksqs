@@ -1,12 +1,13 @@
 package mocksqs
 
 import (
-	"github.com/aws/aws-sdk-go/service/sqs"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
 type Message struct {
-	sqs.Message
+	types.Message
 	VisibleAfter time.Time
 	ReceiveCount int64
 }

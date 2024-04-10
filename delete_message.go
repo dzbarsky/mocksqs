@@ -1,13 +1,13 @@
 package mocksqs
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 // DeleteMessage is fully supported.
-func (client *SQS) DeleteMessage(input *sqs.DeleteMessageInput) (*sqs.DeleteMessageOutput, error) {
+func (client *SQS) DeleteMessage(ctx context.Context, input *sqs.DeleteMessageInput, _ ...func(*sqs.Options)) (*sqs.DeleteMessageOutput, error) {
 	client.httpRequest()
 
 	client.Lock()
@@ -38,7 +38,7 @@ func (client *SQS) deleteMessage(input *sqs.DeleteMessageInput) (*sqs.DeleteMess
 }
 
 // DeleteMessageBatch is fully supported.
-func (client *SQS) DeleteMessageBatch(input *sqs.DeleteMessageBatchInput) (*sqs.DeleteMessageBatchOutput, error) {
+func (client *SQS) DeleteMessageBatch(ctx context.Context, input *sqs.DeleteMessageBatchInput, _ ...func(*sqs.Options)) (*sqs.DeleteMessageBatchOutput, error) {
 	client.httpRequest()
 
 	client.Lock()
@@ -56,24 +56,4 @@ func (client *SQS) DeleteMessageBatch(input *sqs.DeleteMessageBatchInput) (*sqs.
 	}
 
 	return nil, nil
-}
-
-// DeleteMessageWithContext is not implemented. It will panic in all cases.
-func (client *SQS) DeleteMessageWithContext(aws.Context, *sqs.DeleteMessageInput, ...request.Option) (*sqs.DeleteMessageOutput, error) {
-	panic("DeleteMessageWithContext is not implemented")
-}
-
-// DeleteMessageRequest is not implemented. It will panic in all cases.
-func (client *SQS) DeleteMessageRequest(*sqs.DeleteMessageInput) (*request.Request, *sqs.DeleteMessageOutput) {
-	panic("DeleteMessageRequest is not implemented")
-}
-
-// DeleteMessageBatchWithContext is not implemented. It will panic in all cases.
-func (client *SQS) DeleteMessageBatchWithContext(aws.Context, *sqs.DeleteMessageBatchInput, ...request.Option) (*sqs.DeleteMessageBatchOutput, error) {
-	panic("DeleteMessageBatchWithContext is not implemented")
-}
-
-// DeleteMessageBatchRequest is not implemented. It will panic in all cases.
-func (client *SQS) DeleteMessageBatchRequest(*sqs.DeleteMessageBatchInput) (*request.Request, *sqs.DeleteMessageBatchOutput) {
-	panic("DeleteMessageBatchRequest is not implemented")
 }

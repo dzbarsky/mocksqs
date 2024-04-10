@@ -1,12 +1,13 @@
 package mocksqs_test
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/elliotchance/mocksqs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSQS_ReceiveMessage(t *testing.T) {
@@ -43,17 +44,5 @@ func TestSQS_ReceiveMessage(t *testing.T) {
 		})
 		require.NoError(t, err)
 		assert.Len(t, result.Messages, 1)
-	})
-}
-
-func TestSQS_ReceiveMessageWithContext(t *testing.T) {
-	assert.PanicsWithValue(t, "ReceiveMessageWithContext is not implemented", func() {
-		mocksqs.New().ReceiveMessageWithContext(nil, nil)
-	})
-}
-
-func TestSQS_ReceiveMessageRequest(t *testing.T) {
-	assert.PanicsWithValue(t, "ReceiveMessageRequest is not implemented", func() {
-		mocksqs.New().ReceiveMessageRequest(nil)
 	})
 }
