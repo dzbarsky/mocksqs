@@ -37,10 +37,14 @@ func (client *SQS) ReceiveMessage(ctx context.Context, input *sqs.ReceiveMessage
 			message := el.Value.(*Message)
 			t := time.Now()
 			if t.After(message.VisibleAfter) || t == message.VisibleAfter {
+				timeout := input.VisibilityTimeout
+				if timeout == 0 {
+					timeout = 30
+				}
 				_, _ = client.changeMessageVisibility(&sqs.ChangeMessageVisibilityInput{
 					QueueUrl:          input.QueueUrl,
 					ReceiptHandle:     message.ReceiptHandle,
-					VisibilityTimeout: 30,
+					VisibilityTimeout: timeout,
 				})
 
 				message.ReceiveCount++
